@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Appointment } from './appointment.model';
 import * as dayjs from 'dayjs';
 
@@ -7,42 +7,42 @@ export class AppointmentsService {
   private appointments: Appointment[] = [
     {
       id: '1234',
-      startDate: new Date('2024-10-28T09:00:00'),
+      startDate: dayjs().subtract(1, 'hour').toDate(),
       duration: 60,
       patientName: 'Alice',
       description: 'check-up',
     },
     {
       id: '1235',
-      startDate: new Date('2024-10-28T10:30:00'),
+      startDate: dayjs().subtract(2, 'hours').toDate(),
       duration: 30,
       patientName: 'Bob',
       description: 'vaccination',
     },
     {
       id: '1236',
-      startDate: new Date('2024-10-28T11:00:00'),
-      duration: 45,
+      startDate: dayjs().subtract(3, 'hours').toDate(),
+      duration: 30,
       patientName: 'Sue',
       description: 'Blood test',
     },
     {
       id: '1237',
-      startDate: new Date('2024-10-28T13:00:00'),
+      startDate: dayjs().add(4, 'hours').toDate(),
       duration: 60,
       patientName: 'Emily',
       description: 'Consultation',
     },
     {
       id: '1238',
-      startDate: new Date('2024-10-28T14:30:00'),
+      startDate: dayjs().add(5, 'hours').toDate(),
       duration: 30,
       patientName: 'Robert',
       description: 'Consultation',
     },
     {
       id: '1239',
-      startDate: new Date('2024-10-28T15:00:00'),
+      startDate: dayjs().add(6, 'hours').toDate(),
       duration: 60,
       patientName: 'Linda',
       description: 'Test',
@@ -53,5 +53,39 @@ export class AppointmentsService {
     return this.appointments.filter((app) =>
       dayjs(app.startDate).isSame(dayjs(selectedDate), 'day'),
     );
+  }
+
+  schedule(newAppointment: Appointment): Appointment {
+    const startTime = dayjs(newAppointment.startDate);
+    const endTime = startTime.add(newAppointment.duration, 'minute');
+
+    if (startTime.minute() !== 0 && startTime.minute() !== 30) {
+      throw new BadRequestException(
+        'Appointment must start at full or half hour.',
+      );
+    }
+
+    if (!startTime.isSame(endTime, 'day')) {
+      throw new BadRequestException('Appointment must end on the same day.');
+    }
+
+    for (const item of this.appointments) {
+      const appStart = dayjs(item.startDate);
+      const appEnd = appStart.add(item.duration, 'minute');
+
+      if (
+        ((startTime.isSame(appStart) || startTime.isAfter(appStart)) &&
+          startTime.isBefore(appEnd)) ||
+        (endTime.isAfter(appStart) &&
+          (endTime.isSame(appEnd) || endTime.isBefore(appEnd)))
+      ) {
+        throw new BadRequestException(
+          'Appointment overlaps with an existing appointment.',
+        );
+      }
+    }
+
+    this.appointments.push(newAppointment);
+    return newAppointment;
   }
 }
