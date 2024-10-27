@@ -50,8 +50,8 @@ export class AppointmentsService {
   ];
 
   listByDate(selectedDate: string): Appointment[] {
-    return this.appointments.filter((app) =>
-      dayjs(app.startDate).isSame(dayjs(selectedDate), 'day'),
+    return this.appointments.filter((item) =>
+      dayjs(item.startDate).isSame(dayjs(selectedDate), 'day'),
     );
   }
 
@@ -87,5 +87,13 @@ export class AppointmentsService {
 
     this.appointments.push(newAppointment);
     return newAppointment;
+  }
+
+  cancel(id: string): void {
+    const index = this.appointments.findIndex((item) => item.id === id);
+    if (index === -1) {
+      throw new BadRequestException('Appointment not found.');
+    }
+    this.appointments.splice(index, 1);
   }
 }

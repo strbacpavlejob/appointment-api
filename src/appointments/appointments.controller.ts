@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { AppointmentsService } from './appointments.service';
 import { Appointment } from './appointment.model';
 import { v4 as uuid } from 'uuid';
@@ -16,5 +24,10 @@ export class AppointmentsController {
   schedule(@Body() body: Omit<Appointment, 'id'>) {
     const newAppointment: Appointment = { ...body, id: uuid() };
     return this.appointmentsService.schedule(newAppointment);
+  }
+
+  @Delete('cancel/:id')
+  cancel(@Param('id') id: string) {
+    return this.appointmentsService.cancel(id);
   }
 }
