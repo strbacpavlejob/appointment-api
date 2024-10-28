@@ -54,6 +54,13 @@ export class AppointmentsService {
       patientName: 'Linda',
       description: 'Test',
     },
+    {
+      description: 'Current appointment',
+      patientName: 'Test',
+      duration: 30,
+      startDate: dayjs().set('minute', 0).toDate(),
+      id: '5678',
+    },
   ];
 
   listByDate(selectedDate: string): Appointment[] {
